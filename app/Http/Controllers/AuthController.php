@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RegistrationRequest;
 use App\Models\User;
+use App\Service\Security\Authenticate;
 use Illuminate\Http\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
@@ -16,6 +16,16 @@ class AuthController extends Controller
             'password' => bcrypt($request->getPassword()),
         ]);
 
-        return response()->json($user, Response::HTTP_CREATED);
+        return $this->created($user);
     }
+
+    public function login(Authenticate $authenticate): JsonResponse
+    {
+        $user = $authenticate->execute();
+
+        $token = $user->createToken('__AUTH_TOKEN__')->plainTextToken;
+
+        return $this->ok(['user' => $user, 'token' => $token]);
+    }
+
 }
